@@ -9,6 +9,9 @@ pipeline {
 
     stages {
         stage ('Instalar dependencias...') {
+            when {
+                branch 'develop'
+            }
             agent {
                 docker { image 'node:18-alpine'}
             }
@@ -20,6 +23,9 @@ pipeline {
         }
 
         stage ('Construir proyecto con archivos estaticos...') {
+            when {
+                branch 'develop'
+            }
             agent {
                 docker { image 'node:18-alpine'}
             }
@@ -29,6 +35,9 @@ pipeline {
         }
 
         stage('Construir y pushear imagen a dockerhub') {
+            when {
+                branch 'develop'
+            }
             agent {
                 docker {
                     image 'docker:latest'
@@ -44,6 +53,9 @@ pipeline {
         }
 
         stage('Despliegue inicial en minikube...') {
+            when {
+                branch 'develop'
+            }
             agent {
                 docker { 
                     image 'bitnami/kubectl:latest'
@@ -66,6 +78,9 @@ pipeline {
         }
 
         stage('Actualizacion de imagen en minikube...') {
+            when {
+                branch 'develop'
+            }
             agent {
                 docker { 
                     image 'bitnami/kubectl:latest'
@@ -80,4 +95,23 @@ pipeline {
         }
 
     }
+
+    post {
+    success {
+        mail to: 'paulgiraldo72@gmail.com',
+                subject: "Pipeline ${env.JOB_NAME} ejecucion correcta",
+                body: """
+                Hola,
+
+                El pipeline '${env.JOB_NAME}' (Build #${env.BUILD_NUMBER}) ha finalizado de manera correcta
+
+                Los detalles se pueden revisar en el siguiente enlace:
+                ${env.BUILD_URL}
+
+                Saludos .
+                Jenkins Server
+                """
+        }
+    }
+
 }
